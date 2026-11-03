@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevPulse Blog Platform - Module 01 Showcase</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .view-section { display: none; }
+        .view-section.active { display: block; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-100 min-h-screen flex flex-col transition-colors duration-200">
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-gray-900 dark:bg-white text-white dark:text-gray-900 px-5 py-3 rounded-xl shadow-2xl flex items-center gap-3">
+        <i id="toast-icon" data-lucide="info" class="w-5 h-5 text-brand-500"></i>
+        <span id="toast-message" class="text-sm font-medium">Notification message</span>
+    </div>
+
+    <!-- Navigation Header -->
+    <header class="sticky top-0 z-40 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo -->
+                <div class="flex items-center gap-3 cursor-pointer" onclick="navigateTo('home')">
+                    <div class="bg-brand-600 text-white p-2 rounded-xl">
+                        <i data-lucide="code-2" class="w-6 h-6"></i>
+                    </div>
+                    <span class="font-extrabold text-xl tracking-tight bg-gradient-to-r from-brand-600 to-indigo-600 bg-clip-text text-transparent">
+                        DevPulse
+                    </span>
+                </div>
+
+                <!-- Desktop Nav Links -->
+                <nav class="hidden md:flex items-center gap-1">
+                    <button onclick="navigateTo('home')" class="nav-btn px-4 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition">
+                        Home
+                    </button>
+                    <button onclick="navigateTo('dashboard')" class="nav-btn px-4 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition">
+                        Dashboard
+                    </button>
+                    <button onclick="navigateTo('create')" class="nav-btn px-4 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition">
+                        Create Post
+                    </button>
+                </nav>
+
+                <!-- Actions: Theme Toggle & Auth Buttons -->
+                <div class="flex items-center gap-3">
+                    <button id="theme-toggle" class="p-2.5 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition">
+                        <i data-lucide="sun" class="w-5 h-5 hidden dark:block"></i>
+                        <i data-lucide="moon" class="w-5 h-5 block dark:hidden"></i>
+                    </button>
+
+                    <div id="auth-nav-guest" class="flex items-center gap-2">
+                        <button onclick="navigateTo('login')" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-brand-600 transition">
+                            Login
+                        </button>
+                        <button onclick="navigateTo('register')" class="px-4 py-2 text-sm font-medium text-white bg-brand-600 hover:bg-brand-700 rounded-xl shadow-sm transition">
+                            Register
+                        </button>
+                    </div>
+
+                    <div id="auth-nav-user" class="hidden items-center gap-3">
+                        <span id="user-display-name" class="text-sm font-semibold text-gray-700 dark:text-gray-300"></span>
+                        <button onclick="logout()" class="p-2 text-gray-500 hover:text-red-600 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition" title="Logout">
+                            <i data-lucide="log-out" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+
+                    <!-- Mobile Menu Button -->
+                    <button id="mobile-menu-btn" class="md:hidden p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg">
+                        <i data-lucide="menu" class="w-6 h-6"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden border-t border-gray-200 dark:border-gray-800 px-4 pt-2 pb-4 space-y-2">
+            <button onclick="navigateTo('home'); toggleMobileMenu();" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800">Home</button>
+            <button onclick="navigateTo('dashboard'); toggleMobileMenu();" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800">Dashboard</button>
+            <button onclick="navigateTo('create'); toggleMobileMenu();" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800">Create Post</button>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- VIEW 1: HOME -->
+        <section id="view-home" class="view-section active space-y-8">
+            <!-- Hero Banner -->
+            <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-brand-600 to-indigo-700 text-white p-8 sm:p-12 shadow-xl">
+                <div class="relative z-10 max-w-2xl space-y-4">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white/20 backdrop-blur-md">
+                        <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Internship Project - Module 01
+                    </span>
+                    <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight leading-tight">
+                        Explore Insights in Modern Web Development
+                    </h1>
+                    <p class="text-brand-100 text-base sm:text-lg">
+                        Build responsive designs, master HTML, CSS, JavaScript, and manage single-page state with storage.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Search & Filter Controls -->
+            <div class="flex flex-col md:flex-row gap-4 items-center justify-between">
+                <div class="relative w-full md:w-96">
+                    <i data-lucide="search" class="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400"></i>
+                    <input type="text" id="search-input" oninput="renderHomePosts()" placeholder="Search articles..." class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                </div>
+                <div id="category-filters" class="flex flex-wrap gap-2 w-full md:w-auto">
+                    <!-- Filter buttons injected dynamically -->
+                </div>
+            </div>
+
+            <!-- Blog Grid -->
+            <div id="blog-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Posts rendered dynamically -->
+            </div>
+        </section>
+
+        <!-- VIEW 2: LOGIN -->
+        <section id="view-login" class="view-section max-w-md mx-auto py-12">
+            <div class="bg-white dark:bg-gray-800 p-8 rounded-3xl border border-gray-200 dark:border-gray-700 shadow-xl space-y-6">
+                <div class="text-center space-y-2">
+                    <h2 class="text-2xl font-bold">Welcome Back</h2>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Enter your credentials to access your dashboard</p>
+                </div>
+                <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-400 mb-1">Email</label>
+                        <input type="email" id="login-email" required class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-sm focus:ring-2 focus:ring-brand-500 outline-none" placeholder="alex@devpulse.io">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-400 mb-1">Password</label>
+                        <input type="password" id="login-password" required class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-sm focus:ring-2 focus:ring-brand-500 outline-none" placeholder="••••••••">
+                    </div>
+                    <button type="submit" class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-xl transition shadow-md">
+                        Sign In
+                    </button>
+                </form>
+                <div class="text-center text-xs text-gray-500">
+                    Don't have an account? <a href="#" onclick="navigateTo('register')" class="text-brand-600 font-semibold hover:underline">Register here</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW 3: REGISTER -->
+        <section id="view-register" class="view-section max-w-md mx-auto py-12">
+            <div class="bg-white dark:bg-gray-800 p-8 rounded-3xl border border-gray-200 dark:border-gray-700 shadow-xl space-y-6">
+                <div class="text-center space-y-2">
+                    <h2 class="text-2xl font-bold">Create an Account</h2>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Join our developer blogging community</p>
+                </div>
+                <form id="register-form" onsubmit="handleRegister(event)" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-400 mb-1">Full Name</label>
+                        <input type="text" id="reg-name" required class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-sm focus:ring-2 focus:ring-brand-500 outline-none" placeholder="Alex Morgan">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-400 mb-1">Email</label>
+                        <input type="email" id="reg-email" required class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-sm focus:ring-2 focus:ring-brand-500 outline-none" placeholder="alex@devpulse.io">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-400 mb-1">Password</label>
+                        <input type="password" id="reg-password" required minlength="6" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-sm focus:ring-2 focus:ring-brand-500 outline-none" placeholder="At least 6 characters">
+                    </div>
+                    <button type="submit" class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-xl transition shadow-md">
+                        Complete Registration
+                    </button>
+                </form>
+                <div class="text-center text-xs text-gray-500">
+                    Already registered? <a href="#" onclick="navigateTo('login')" class="text-brand-600 font-semibold hover:underline">Sign In</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW 4: DASHBOARD -->
+        <section id="view-dashboard" class="view-section space-y-8">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h1 class="text-2xl font-bold">Author Dashboard</h1>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Manage your published articles and monitor metrics</p>
+                </div>
+                <button onclick="navigateTo('create')" class="inline-flex items-center gap-2 px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-xl transition shadow-md">
+                    <i data-lucide="plus" class="w-4 h-4"></i> New Article
+                </button>
+            </div>
+
+            <!-- Dashboard Stats Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm flex items-center gap-4">
+                    <div class="p-3 bg-brand-50 dark:bg-brand-900/40 text-brand-600 rounded-xl">
+                        <i data-lucide="file-text" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-bold" id="stat-posts-count">0</div>
+                        <div class="text-xs text-gray-500 uppercase font-semibold">Total Posts</div>
+                    </div>
+                </div>
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm flex items-center gap-4">
+                    <div class="p-3 bg-emerald-50 dark:bg-emerald-900/40 text-emerald-600 rounded-xl">
+                        <i data-lucide="eye" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-bold" id="stat-views-count">1.4k</div>
+                        <div class="text-xs text-gray-500 uppercase font-semibold">Total Views</div>
+                    </div>
+                </div>
+                <div class="bg-white dark:bg-gray-800 p-6 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm flex items-center gap-4">
+                    <div class="p-3 bg-purple-50 dark:bg-purple-900/40 text-purple-600 rounded-xl">
+                        <i data-lucide="award" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-bold">#1001</div>
+                        <div class="text-xs text-gray-500 uppercase font-semibold">Intern Rank</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Articles List -->
+            <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
+                <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 font-bold">
+                    Your Published Articles
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-gray-50 dark:bg-gray-900/50 text-xs uppercase text-gray-500 font-semibold border-b border-gray-200 dark:border-gray-700">
+                            <tr>
+                                <th class="px-6 py-3">Article</th>
+                                <th class="px-6 py-3">Category</th>
+                                <th class="px-6 py-3">Date</th>
+                                <th class="px-6 py-3 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dashboard-table-body" class="divide-y divide-gray-200 dark:divide-gray-700">
+                            <!-- Table rows injected dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- VIEW 5: CREATE / EDIT BLOG -->
+        <section id="view-create" class="view-section space-y-8">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-2xl font-bold" id="form-title-heading">Create New Article</h1>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Share knowledge with the developer community</p>
+                </div>
+                <button onclick="navigateTo('dashboard')" class="text-sm font-medium text-gray-500 hover:text-gray-900 dark:hover:text-white">
+                    Cancel
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Input Form -->
+                <form id="blog-form" onsubmit="handleSavePost(event)" class="space-y-5 bg-white dark:bg-gray-800 p-6 rounded-3xl border border-gray-200 dark:border-gray-700 shadow-sm">
+                    <input type="hidden" id="post-id">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-400 mb-1">Title</label>
+                        <input type="text" id="post-title" required oninput="updateLivePreview()" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-sm focus:ring-2 focus:ring-brand-500 outline-none" placeholder="Mastering Responsive Design with Tailwind CSS">
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-400 mb-1">Category</label>
+                            <select id="post-category" onchange="updateLivePreview()" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-sm focus:ring-2 focus:ring-brand-500 outline-none">
+                                <option value="Frontend">Frontend</option>
+                                <option value="Backend">Backend</option>
+                                <option value="Design">Design</option>
+                                <option value="Career">Career</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-400 mb-1">Cover Image URL</label>
+                            <input type="url" id="post-image" oninput="updateLivePreview()" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-sm focus:ring-2 focus:ring-brand-500 outline-none" placeholder="https://images.unsplash.com/photo-...">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-gray-400 mb-1">Content (Markdown supported style)</label>
+                        <textarea id="post-content" rows="8" required oninput="updateLivePreview()" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-sm focus:ring-2 focus:ring-brand-500 outline-none resize-none" placeholder="Write your blog post content here..."></textarea>
+                    </div>
+                    <button type="submit" class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-xl shadow-md transition">
+                        Publish Post
+                    </button>
+                </form>
+
+                <!-- Live Preview Pane -->
+                <div class="space-y-3">
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-gray-500">Live Preview Card</label>
+                    <div id="preview-card" class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
+                        <img id="preview-img" src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=600" class="w-full h-48 object-cover" alt="Preview Image" onerror="this.src='https://placehold.co/600x300/3b82f6/white?text=Blog+Cover'">
+                        <div class="p-6 space-y-3">
+                            <span id="preview-cat" class="px-2.5 py-1 text-xs font-semibold bg-brand-50 dark:bg-brand-900/40 text-brand-600 dark:text-brand-400 rounded-lg">Frontend</span>
+                            <h3 id="preview-title-text" class="text-xl font-bold leading-snug">Post Title Preview</h3>
+                            <p id="preview-body" class="text-sm text-gray-600 dark:text-gray-300 line-clamp-3">Your content preview will dynamically render here as you type into the editor form...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Global Footer -->
+    <footer class="bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 py-6">
+        <div class="max-w-7xl mx-auto px-4 text-center text-xs text-gray-500 dark:text-gray-400 space-y-2">
+            <p>Codomax Digital Internship Program • Module 01: Frontend Development</p>
+            <p>© 2026 DevPulse Platform. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Application Logic -->
+    <script>
+        // Default Mock Data
+        const defaultPosts = [
+            {
+                id: '1',
+                title: 'Building Modern Responsive Interfaces with CSS Grid & Tailwind',
+                category: 'Frontend',
+                image: 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?w=600',
+                content: 'Creating modern websites requires flexible layouts that look crisp across all viewports. Tailwind CSS makes this efficient using utility classes...',
+                author: 'Alex Morgan',
+                date: 'May 12, 2026'
+            },
+            {
+                id: '2',
+                title: 'Getting Started with LocalStorage for Single Page Apps',
+                category: 'Frontend',
+                image: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=600',
+                content: 'Web storage provides a simple way to store key/value pairs locally in a client web browser without relying on an immediate backend connection...',
+                author: 'Sarah Chen',
+                date: 'May 10, 2026'
+            },
+            {
+                id: '3',
+                title: 'Essential Guidelines for Designing Developer Portfolios',
+                category: 'Design',
+                image: 'https://images.unsplash.com/photo-1542744094-3a3121699573?w=600',
+                content: 'Your portfolio should effectively highlight real projects, clean code structure, clear navigation, and deliverable showcases for internship evaluations...',
+                author: 'Alex Morgan',
+                date: 'May 08, 2026'
+            }
+        ];
+
+        // Global State Management
+        let posts = JSON.parse(localStorage.getItem('devpulse_posts')) || defaultPosts;
+        let currentUser = JSON.parse(localStorage.getItem('devpulse_user')) || null;
+        let activeCategory = 'All';
+
+        // Initialize App
+        window.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            initTheme();
+            updateAuthUI();
+            renderCategoryFilters();
+            renderHomePosts();
+            renderDashboardTable();
+        });
+
+        // Theme Toggle
+        const themeBtn = document.getElementById('theme-toggle');
+        function initTheme() {
+            if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        }
+        themeBtn.addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+            localStorage.theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+        });
+
+        // Mobile Menu Toggle
+        document.getElementById('mobile-menu-btn').addEventListener('click', toggleMobileMenu);
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        // View Router
+        function navigateTo(viewId) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            const targetView = document.getElementById(`view-${viewId}`);
+            if (targetView) targetView.classList.add('active');
+
+            if (viewId === 'home') renderHomePosts();
+            if (viewId === 'dashboard') renderDashboardTable();
+            if (viewId === 'create' && !document.getElementById('post-id').value) {
+                resetForm();
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Notification Toast Helper
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-message');
+            toastMsg.innerText = message;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        // Auth Logic
+        function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            currentUser = { name: email.split('@')[0], email: email };
+            localStorage.setItem('devpulse_user', JSON.stringify(currentUser));
+            updateAuthUI();
+            showToast('Logged in successfully!');
+            navigateTo('dashboard');
+        }
+
+        function handleRegister(e) {
+            e.preventDefault();
+            const name = document.getElementById('reg-name').value;
+            const email = document.getElementById('reg-email').value;
+            currentUser = { name: name, email: email };
+            localStorage.setItem('devpulse_user', JSON.stringify(currentUser));
+            updateAuthUI();
+            showToast('Account registered successfully!');
+            navigateTo('dashboard');
+        }
+
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem('devpulse_user');
+            updateAuthUI();
+            showToast('Logged out');
+            navigateTo('home');
+        }
+
+        function updateAuthUI() {
+            const guestNav = document.getElementById('auth-nav-guest');
+            const userNav = document.getElementById('auth-nav-user');
+            const userDisplay = document.getElementById('user-display-name');
+
+            if (currentUser) {
+                guestNav.classList.add('hidden');
+                userNav.classList.remove('hidden');
+                userNav.classList.add('flex');
+                userDisplay.innerText = currentUser.name;
+            } else {
+                guestNav.classList.remove('hidden');
+                userNav.classList.add('hidden');
+                userNav.classList.remove('flex');
+            }
+        }
+
+        // Home Page Rendering & Filtering
+        function renderCategoryFilters() {
+            const categories = ['All', 'Frontend', 'Backend', 'Design', 'Career'];
+            const container = document.getElementById('category-filters');
+            container.innerHTML = categories.map(cat => `
+                <button onclick="setCategory('${cat}')" class="px-3.5 py-1.5 rounded-xl text-xs font-semibold transition ${
+                    activeCategory === cat 
+                    ? 'bg-brand-600 text-white shadow-sm' 
+                    : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-gray-100'
+                }">${cat}</button>
+            `).join('');
+        }
+
+        function setCategory(cat) {
+            activeCategory = cat;
+            renderCategoryFilters();
+            renderHomePosts();
+        }
+
+        function renderHomePosts() {
+            const searchQuery = document.getElementById('search-input').value.toLowerCase();
+            const grid = document.getElementById('blog-grid');
+
+            const filtered = posts.filter(post => {
+                const matchesCat = activeCategory === 'All' || post.category === activeCategory;
+                const matchesSearch = post.title.toLowerCase().includes(searchQuery) || post.content.toLowerCase().includes(searchQuery);
+                return matchesCat && matchesSearch;
+            });
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full py-12 text-center text-gray-500">
+                        <i data-lucide="inbox" class="w-12 h-12 mx-auto mb-3 stroke-1"></i>
+                        <p class="text-base font-medium">No articles found matching criteria</p>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            grid.innerHTML = filtered.map(post => `
+                <article class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition flex flex-col">
+                    <img src="${post.image}" alt="${post.title}" class="w-full h-48 object-cover" onerror="this.src='https://placehold.co/600x300/3b82f6/white?text=DevPulse+Post'">
+                    <div class="p-6 flex-grow flex flex-col justify-between space-y-4">
+                        <div class="space-y-2">
+                            <span class="px-2.5 py-1 text-xs font-semibold bg-brand-50 dark:bg-brand-900/40 text-brand-600 dark:text-brand-400 rounded-lg">${post.category}</span>
+                            <h3 class="text-lg font-bold leading-snug line-clamp-2">${post.title}</h3>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 line-clamp-3">${post.content}</p>
+                        </div>
+                        <div class="pt-4 border-t border-gray-100 dark:border-gray-700/50 flex items-center justify-between text-xs text-gray-500">
+                            <span>By ${post.author}</span>
+                            <span>${post.date}</span>
+                        </div>
+                    </div>
+                </article>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        // Live Preview in Create Form
+        function updateLivePreview() {
+            const title = document.getElementById('post-title').value || 'Post Title Preview';
+            const cat = document.getElementById('post-category').value;
+            const img = document.getElementById('post-image').value || 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=600';
+            const content = document.getElementById('post-content').value || 'Your content preview will dynamically render here...';
+
+            document.getElementById('preview-title-text').innerText = title;
+            document.getElementById('preview-cat').innerText = cat;
+            document.getElementById('preview-img').src = img;
+            document.getElementById('preview-body').innerText = content;
+        }
+
+        // Form Submit: Save/Update Post
+        function handleSavePost(e) {
+            e.preventDefault();
+            const id = document.getElementById('post-id').value;
+            const title = document.getElementById('post-title').value;
+            const category = document.getElementById('post-category').value;
+            const image = document.getElementById('post-image').value || 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=600';
+            const content = document.getElementById('post-content').value;
+
+            if (id) {
+                // Update existing post
+                const idx = posts.findIndex(p => p.id === id);
+                if (idx !== -1) {
+                    posts[idx] = { ...posts[idx], title, category, image, content };
+                    showToast('Article updated successfully!');
+                }
+            } else {
+                // Create new post
+                const newPost = {
+                    id: Date.now().toString(),
+                    title,
+                    category,
+                    image,
+                    content,
+                    author: currentUser ? currentUser.name : 'Anonymous Developer',
+                    date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+                };
+                posts.unshift(newPost);
+                showToast('New article published!');
+            }
+
+            localStorage.setItem('devpulse_posts', JSON.stringify(posts));
+            resetForm();
+            navigateTo('dashboard');
+        }
+
+        function resetForm() {
+            document.getElementById('post-id').value = '';
+            document.getElementById('blog-form').reset();
+            document.getElementById('form-title-heading').innerText = 'Create New Article';
+            updateLivePreview();
+        }
+
+        // Dashboard Management
+        function renderDashboardTable() {
+            document.getElementById('stat-posts-count').innerText = posts.length;
+            const tbody = document.getElementById('dashboard-table-body');
+
+            if (posts.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="px-6 py-6 text-center text-gray-500">No posts published yet.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = posts.map(post => `
+                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition">
+                    <td class="px-6 py-4 font-semibold text-gray-900 dark:text-gray-100 max-w-xs truncate">${post.title}</td>
+                    <td class="px-6 py-4"><span class="px-2 py-1 text-xs rounded-md bg-gray-100 dark:bg-gray-700 font-medium">${post.category}</span></td>
+                    <td class="px-6 py-4 text-xs text-gray-500">${post.date}</td>
+                    <td class="px-6 py-4 text-right space-x-2">
+                        <button onclick="editPost('${post.id}')" class="p-1.5 text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/30 rounded-lg transition" title="Edit">
+                            <i data-lucide="edit-3" class="w-4 h-4"></i>
+                        </button>
+                        <button onclick="deletePost('${post.id}')" class="p-1.5 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition" title="Delete">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        function editPost(id) {
+            const post = posts.find(p => p.id === id);
+            if (!post) return;
+
+            document.getElementById('post-id').value = post.id;
+            document.getElementById('post-title').value = post.title;
+            document.getElementById('post-category').value = post.category;
+            document.getElementById('post-image').value = post.image;
+            document.getElementById('post-content').value = post.content;
+            document.getElementById('form-title-heading').innerText = 'Edit Article';
+
+            updateLivePreview();
+            navigateTo('create');
+        }
+
+        function deletePost(id) {
+            posts = posts.filter(p => p.id !== id);
+            localStorage.setItem('devpulse_posts', JSON.stringify(posts));
+            showToast('Post deleted');
+            renderDashboardTable();
+        }
+    </script>
+</body>
+</html>
